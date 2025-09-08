@@ -177,3 +177,26 @@ You can provide your own values for the chain file, coin name, owner, and the fi
 # Usage: ./workflow_example.sh [CHAIN_FILE] [COIN_NAME] [OWNER] [FILE_TO_NOTARIZE]
 ./workflow_example.sh personal_stuff.dat "MyTokens" "$USER" "my_secret_notes.txt"
 ```
+
+---
+
+## Path Forward: Future Ideas
+
+This tool provides a strong foundation for exploring more advanced blockchain concepts. Here are some potential features and improvements for the future:
+
+*   **Federated Consensus (The "Poor Man's Distributed Chain"):**
+    *   Modify the `mine` command to automatically push the updated chain file to multiple Git repositories (the "nodes").
+    *   Modify the `verify` and `balance` commands to download the chain file from all configured repositories.
+    *   Implement a "majority rules" consensus mechanism, where the version of the chain that exists on the majority of nodes is considered the authoritative truth.
+
+*   **True Cryptographic Security:**
+    *   Integrate a library like `cryptography` to create public/private key pairs for users.
+    *   Require that all transactions (notarizations, currency transfers) be digitally signed with the sender's private key.
+    *   Modify the verification logic to check these signatures, making the system truly secure.
+
+*   **Transaction Fees:**
+    *   Allow users to attach a small fee to their transactions.
+    *   Modify the `mine` command so that the miner collects all the transaction fees from the block in addition to the block reward.
+
+*   **Difficulty Adjustment:**
+    *   Implement a mechanism that automatically adjusts the mining `difficulty` every N blocks to target a consistent average block time.
