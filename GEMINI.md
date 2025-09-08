@@ -14,6 +14,46 @@ The tool operates in three distinct modes, providing different levels of engagem
 
 ---
 
+## Installation and Environment Setup
+
+To run this tool reliably, especially for verifying a blockchain, you need a consistent environment.
+
+### Prerequisites
+
+1.  **Python 3:** You will need Python 3 (version 3.6 or newer is recommended). To check if you have it installed, run:
+    ```bash
+    python3 --version
+    ```
+2.  **Git:** You will need Git to clone the repository. This is the recommended way to get the source code, as it allows you to verify the script's integrity against the official commit history. To check your version, run:
+    ```bash
+    git --version
+    ```
+
+### Installation Steps
+
+1.  **Clone the Repository:**
+    Open your terminal and clone the project from GitHub. This ensures you have the authentic source code.
+    ```bash
+    git clone https://github.com/charles-forsyth/python-blockchain-toolkit.git
+    ```
+
+2.  **Navigate to the Directory:**
+    ```bash
+    cd python-blockchain-toolkit
+    ```
+
+3.  **No Package Installation Needed:**
+    This project **only uses Python's standard library**, so you do not need to `pip install` any packages. The included `requirements.txt` file is intentionally empty to make this clear.
+
+### Running the Tool
+
+You can now run the tool directly. The best first step is to view the help menu, which contains a full list of commands and examples:
+```bash
+python3 blockchain.py --help
+```
+
+---
+
 ## Modes of Operation
 
 ### 1. Default Mode (Simple Demo)
