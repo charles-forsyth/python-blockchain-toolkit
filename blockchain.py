@@ -11,8 +11,32 @@ import pickle
 import argparse
 import os
 import sys
+import subprocess
 
 # --- Helper Functions ---
+
+def get_git_provenance():
+    """Gets the Git remote URL and commit hash of the current repository."""
+    try:
+        # Get the remote URL
+        url_result = subprocess.run(
+            ['git', 'config', '--get', 'remote.origin.url'],
+            capture_output=True, text=True, check=True
+        )
+        url = url_result.stdout.strip()
+
+        # Get the current commit hash
+        hash_result = subprocess.run(
+            ['git', 'rev-parse', 'HEAD'],
+            capture_output=True, text=True, check=True
+        )
+        commit_hash = hash_result.stdout.strip()
+        
+        return {'repo_url': url, 'commit_hash': commit_hash}
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # This will happen if not in a git repo or git is not installed.
+        return {'repo_url': 'N/A', 'commit_hash': 'N/A'}
+
 def hash_file(filename):
     """Calculates the SHA-256 hash of a file."""
     if not os.path.exists(filename):
@@ -41,7 +65,8 @@ class Block:
         self.hash = self.calculate_hash()
 
     def calculate_hash(self):
-        block_string = str(self.index) + str(self.timestamp) + str(self.transactions) + str(self.previous_hash) + str(self.nonce)
+        # Using repr() for a more stable serialization of the transactions dict
+        block_string = str(self.index) + str(self.timestamp) + repr(self.transactions) + str(self.previous_hash) + str(self.nonce)
         return hashlib.sha256(block_string.encode()).hexdigest()
 
 class Blockchain:
@@ -56,7 +81,12 @@ class Blockchain:
 
     def create_genesis_block(self, mode):
         print(f"Initializing blockchain in '{mode}' mode with currency '{self.coin_name}'...")
-        return Block(0, time.time(), f"Genesis Block ({mode} mode)", "0")
+        genesis_data = {
+            'type': 'genesis',
+            'message': f"Genesis Block ({mode} mode)",
+            'provenance': get_git_provenance()
+        }
+        return Block(0, time.time(), genesis_data, "0")
 
     def get_latest_block(self):
         return self.chain[-1]
@@ -109,6 +139,9 @@ class Blockchain:
         balance = 0
         for block in self.chain:
             if not isinstance(block.transactions, list):
+                # The genesis block now has a dict, so we handle that
+                if isinstance(block.transactions, dict): 
+                    continue
                 continue
             for tx in block.transactions:
                 if not isinstance(tx, dict):
@@ -127,7 +160,17 @@ class Blockchain:
             print(f"Index: {block.index}")
             print(f"Timestamp: {time.ctime(block.timestamp)}")
             print("Transactions:")
-            if isinstance(block.transactions, list):
+            
+            # Handle Genesis block with provenance
+            if isinstance(block.transactions, dict) and block.transactions.get('type') == 'genesis':
+                prov = block.transactions.get('provenance', {})
+                print(f"  - {block.transactions.get('message')}")
+                print(f"    - Provenance:")
+                print(f"      - Repo URL: {prov.get('repo_url', 'N/A')}")
+                print(f"      - Commit Hash: {prov.get('commit_hash', 'N/A')}")
+
+            # Handle regular transaction blocks
+            elif isinstance(block.transactions, list):
                 for tx in block.transactions:
                     if isinstance(tx, dict):
                         if tx.get('type') == 'notarization':
@@ -140,10 +183,12 @@ class Blockchain:
                         print(f"  - {tx}")
             else:
                 print(f"  - {block.transactions}")
+            
             print(f"Previous Hash: {block.previous_hash}")
             print(f"Hash: {block.hash}")
             print(f"Nonce: {block.nonce}")
             print("-" * 40)
+
 
 # --- Persistence Functions ---
 def save_blockchain(blockchain, filename):
