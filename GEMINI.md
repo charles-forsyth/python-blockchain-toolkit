@@ -151,3 +151,29 @@ You can now run the tool directly. The best first step is to view the help menu:
     ```bash
     ./blockchain.py --chain my_chain.dat verify my_idea.txt
     ```
+
+---
+
+## Reusable Workflow Example Script
+
+Included in this repository is `workflow_example.sh`, a script that demonstrates a complete, end-to-end workflow. It can be used to quickly test the tool or as a template for your own scripts.
+
+### How to Use
+
+Make the script executable first:
+```bash
+chmod +x workflow_example.sh
+```
+
+**Run with default values:**
+This will create `example_chain.dat` and `example_document.txt`.
+```bash
+./workflow_example.sh
+```
+
+**Run with custom parameters:**
+You can provide your own values for the chain file, coin name, owner, and the file to notarize.
+```bash
+# Usage: ./workflow_example.sh [CHAIN_FILE] [COIN_NAME] [OWNER] [FILE_TO_NOTARIZE]
+./workflow_example.sh personal_stuff.dat "MyTokens" "$USER" "my_secret_notes.txt"
+```
