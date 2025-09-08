@@ -78,6 +78,11 @@ These options can be used with any CLI command to specify which blockchain you w
     python3 blockchain.py balance --address <address_to_check>
     ```
 
+*   **`self-verify`**: Verifies the integrity of the script itself against a committed checksum.
+    ```bash
+    python3 blockchain.py self-verify
+    ```
+
 *   **`print`**: Displays the full contents of the blockchain, block by block.
     ```bash
     python3 blockchain.py print

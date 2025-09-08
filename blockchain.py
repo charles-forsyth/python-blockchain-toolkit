@@ -177,6 +177,37 @@ def run_simulation_demo():
         bal = gemini_coin.calculate_balance(person)
         print(f"Balance for {person}: {bal} {gemini_coin.coin_name}")
 
+def run_self_verify():
+    """Checks the integrity of the script itself against a trusted hash."""
+    print("--- Verifying Script Integrity ---")
+    trusted_hash_file = 'trusted_hash.txt'
+    
+    # 1. Read the trusted hash from the file.
+    try:
+        with open(trusted_hash_file, 'r') as f:
+            # The file format from sha256sum is "HASH  FILENAME", so we split and take the first part.
+            trusted_hash = f.read().split()[0]
+    except FileNotFoundError:
+        print(f"❌ Error: Trusted hash file not found at '{trusted_hash_file}'.")
+        print("Cannot verify script integrity.")
+        return
+    except IndexError:
+        print(f"❌ Error: Trusted hash file '{trusted_hash_file}' is empty or malformed.")
+        return
+
+    # 2. Calculate the current hash of the running script.
+    # __file__ is a special Python variable that holds the path to the current script.
+    current_script_hash = hash_file(__file__)
+
+    print(f"Trusted Hash (from file): {trusted_hash}")
+    print(f"Current Hash (of running script): {current_script_hash}")
+
+    # 3. Compare and report the result.
+    if trusted_hash == current_script_hash:
+        print("\n✅ Verification Successful! The script is authentic and has not been modified.")
+    else:
+        print("\n🚨 WARNING: Verification Failed! The script may have been tampered with.")
+
 # --- Main CLI Function ---
 def main():
     if len(sys.argv) == 1:
@@ -230,15 +261,16 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
     )
     
     # Global arguments that apply to the CLI Tool Mode
-    parser.add_argument('--chain', type=str, default='geminicoin.dat', 
+    parser.add_argument('--chain', type=str, default='geminicoin.dat',
                         help='The file name for the blockchain. Allows you to maintain multiple, separate chains. Defaults to geminicoin.dat.')
-    parser.add_argument('--coin-name', type=str, default='MultiCoin', 
+    parser.add_argument('--coin-name', type=str, default='MultiCoin',
                         help='The name for the currency/reward unit. This is only applied when a new blockchain file is created.')
 
     subparsers = parser.add_subparsers(dest='command', help='Choose a mode of operation or a command for the CLI tool.')
 
     # --- Mode Commands ---
     subparsers.add_parser('simulate', help='Run the non-persistent MultiCoin currency simulation.')
+    subparsers.add_parser('self-verify', help='Verify the integrity of the blockchain.py script itself.')
 
     # --- CLI Tool Commands ---
     parser_notarize = subparsers.add_parser('notarize', help='(CLI Tool) Add a file to the mempool for notarization.')
@@ -266,6 +298,10 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
 
     if args.command == 'simulate':
         run_simulation_demo()
+        return
+    
+    if args.command == 'self-verify':
+        run_self_verify()
         return
     
     # For CLI tool commands, load the specified chain
@@ -296,6 +332,7 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
         print(f"\n💰 The balance for address '{args.address}' is: {balance} {gemini_coin.coin_name}")
 
     save_blockchain(gemini_coin, args.chain)
+
 
 
 if __name__ == "__main__":
