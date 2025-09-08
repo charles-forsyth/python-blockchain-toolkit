@@ -36,7 +36,7 @@ To run this tool reliably, especially for verifying a blockchain, you need a con
 ### Installation Steps
 
 1.  **Clone the Repository:**
-    Open your terminal and clone the project from GitHub. This ensures you have the authentic source code.
+    Open your terminal and clone the project from GitHub.
     ```bash
     git clone https://github.com/charles-forsyth/python-blockchain-toolkit.git
     ```
@@ -46,14 +46,20 @@ To run this tool reliably, especially for verifying a blockchain, you need a con
     cd python-blockchain-toolkit
     ```
 
-3.  **No Package Installation Needed:**
-    This project **only uses Python's standard library**, so you do not need to `pip install` any packages. The included `requirements.txt` file is intentionally empty to make this clear.
+3.  **Make the Script Executable:**
+    This is a one-time command that allows you to run the script directly.
+    ```bash
+    chmod +x blockchain.py
+    ```
+
+4.  **No Package Installation Needed:**
+    This project **only uses Python's standard library**.
 
 ### Running the Tool
 
-You can now run the tool directly. The best first step is to view the help menu, which contains a full list of commands and examples:
+You can now run the tool directly. The best first step is to view the help menu:
 ```bash
-python3 blockchain.py --help
+./blockchain.py --help
 ```
 
 ---
@@ -61,75 +67,62 @@ python3 blockchain.py --help
 ## Modes of Operation
 
 ### 1. Default Mode (Simple Demo)
-This is the most basic mode, designed to show the fundamental structure of a blockchain. It runs entirely in memory and does not save any data.
-
 *   **How to Run:**
     ```bash
-    python3 blockchain.py
+    ./blockchain.py
     ```
 *   **What it Does:** Creates a blockchain, adds a few blocks with simple string data, and prints the final chain to the console.
 
 ### 2. Simulation Mode (Currency Simulation)
-This mode demonstrates a simple cryptocurrency, which we call "MultiCoin." It shows how transactions between users are collected and how "miners" are rewarded with new coins for processing them. This mode also runs entirely in memory.
-
 *   **How to Run:**
     ```bash
-    python3 blockchain.py simulate
+    ./blockchain.py simulate
     ```
 *   **What it Does:** Runs a pre-defined scenario where users exchange coins, miners create blocks, and final balances are calculated and displayed.
 
 ### 3. CLI Tool Mode (Persistent File Notary)
-This is the most advanced and practical mode. It turns the script into a command-line utility that can create a permanent, timestamped, and verifiable record of any file. The state of the blockchain in this mode is saved to a file, allowing you to build a persistent ledger over time.
-
 *   **How to Run:** Use commands like `notarize`, `mine`, `verify`, `balance`, and `print`.
-*   **What it Does:** Allows you to manage one or more persistent blockchains for practical purposes like proving the existence and integrity of your files.
+*   **What it Does:** Allows you to manage one or more persistent blockchains for practical purposes.
 
 ---
 
 ## CLI Tool Usage Guide
 
-This mode allows you to create and manage your own blockchains.
-
 ### Global Options
-These options can be used with any CLI command to specify which blockchain you want to work with.
-
-*   `--chain <filename>`: Specifies the blockchain file to use. If the file doesn't exist, a new one is created. Defaults to `geminicoin.dat`.
-*   `--coin-name <name>`: Sets the name of the currency/reward unit (e.g., "ivxx's", "ArtCoin"). This is only applied when a **new** blockchain file is created. Defaults to "MultiCoin".
+*   `--chain <filename>`: Specifies the blockchain file to use. Defaults to `geminicoin.dat`.
+*   `--coin-name <name>`: Sets the name of the currency/reward unit. Defaults to "MultiCoin".
 
 ### Commands
 
-*   **`notarize`**: Calculates a file's unique hash and adds it to the "mempool" (a waiting area for transactions).
+*   **`notarize`**:
     ```bash
-    python3 blockchain.py notarize --owner <your_name> --file <path_to_file>
+    ./blockchain.py notarize --owner <your_name> --file <path_to_file>
     ```
 
-*   **`mine`**: Gathers all pending transactions from the mempool, bundles them into a new block, performs the "proof-of-work," and adds the block to the chain. The miner receives a reward.
+*   **`mine`**:
     ```bash
     # Reward goes to your system username by default
-    python3 blockchain.py mine
-
-    # Specify a different miner
-    python3 blockchain.py mine --miner "AnotherMiner"
+    ./blockchain.py mine
     ```
 
-*   **`verify`**: Checks if a file is on the blockchain. It re-calculates the file's hash and searches the entire chain for a match.
+*   **`verify`**:
     ```bash
-    python3 blockchain.py verify <path_to_file>
+    ./blockchain.py verify <path_to_file>
     ```
 
-*   **`balance`**: Scans the entire blockchain to calculate the total coin balance for a specific address.
+*   **`balance`**:
     ```bash
-    python3 blockchain.py balance --address <address_to_check>
+    ./blockchain.py balance --address <address_to_check>
     ```
 
-*   **`self-verify`**: Verifies the integrity of the script itself against a committed checksum.
+*   **`self-verify`**:
     ```bash
-    python3 blockchain.py self-verify
+    ./blockchain.py self-verify
     ```
 
-*   **`print`**: Displays the full contents of the blockchain, block by block.
+*   **`print`**:
     ```bash
-    python3 blockchain.py print
+    ./blockchain.py print
     ```
 
 ### Example Workflow: Creating a Personal Notary Chain
@@ -139,22 +132,22 @@ These options can be used with any CLI command to specify which blockchain you w
     echo "My brilliant idea, recorded on this day." > my_idea.txt
     ```
 
-2.  **Notarize it on a new, personal chain called `my_chain.dat` with "Tokens" as the currency:**
+2.  **Notarize it on a new, personal chain:**
     ```bash
-    python3 blockchain.py --chain my_chain.dat --coin-name "Tokens" notarize --owner "$USER" --file my_idea.txt
+    ./blockchain.py --chain my_chain.dat --coin-name "Tokens" notarize --owner "$USER" --file my_idea.txt
     ```
 
-3.  **Mine the block to make the record permanent:**
+3.  **Mine the block:**
     ```bash
-    python3 blockchain.py --chain my_chain.dat mine
+    ./blockchain.py --chain my_chain.dat mine
     ```
 
 4.  **Check your balance:**
     ```bash
-    python3 blockchain.py --chain my_chain.dat balance --address "$USER"
+    ./blockchain.py --chain my_chain.dat balance --address "$USER"
     ```
 
-5.  **Verify your file at any time in the future:**
+5.  **Verify your file:**
     ```bash
-    python3 blockchain.py --chain my_chain.dat verify my_idea.txt
+    ./blockchain.py --chain my_chain.dat verify my_idea.txt
     ```

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # MultiCoin: A Multi-Mode Educational Blockchain Tool
 #
 # This script can be run in three different ways:
@@ -5,12 +6,22 @@
 # 2. `simulate` command (`python3 blockchain.py simulate`): Runs a currency simulation.
 # 3. CLI commands (`notarize`, `mine`, etc.): Acts as a persistent file notary tool.
 
+import sys
+
+# --- Version Check ---
+# Enforce a minimum Python version to ensure compatibility.
+MIN_PYTHON_VERSION = (3, 6)
+if sys.version_info < MIN_PYTHON_VERSION:
+    sys.exit(
+        "Python %s.%s or newer is required to run this tool."
+        % MIN_PYTHON_VERSION
+    )
+
 import hashlib
 import time
 import pickle
 import argparse
 import os
-import sys
 import subprocess
 
 # --- Helper Functions ---
@@ -268,40 +279,35 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
 
 **1. Default Mode (Simple Demo):**
    Shows the most basic blockchain concepts. Runs in-memory and does not save data.
-   $ python3 blockchain.py
+   $ ./blockchain.py
 
 **2. Simulation Mode (Currency Simulation):**
-   Demonstrates a simple cryptocurrency with multiple users and miners. Also runs in-memory.
-   $ python3 blockchain.py simulate
+   Demonstrates a simple cryptocurrency. Also runs in-memory.
+   $ ./blockchain.py simulate
 
 **3. CLI Tool Mode (A Practical Workflow):**
    Use the tool as a persistent file notary. This mode saves its data.
+   (First, make the script executable: chmod +x blockchain.py)
 
    # Notarize a file on the default chain (geminicoin.dat)
-   $ python3 blockchain.py notarize --owner "$USER" --file my_art.txt
+   $ ./blockchain.py notarize --owner "$USER" --file my_art.txt
 
    # Mine a block to add the notarization to the chain
-   $ python3 blockchain.py mine
+   $ ./blockchain.py mine
 
    # Check your balance (you just got a mining reward!)
-   $ python3 blockchain.py balance --address "$USER"
+   $ ./blockchain.py balance --address "$USER"
 
 **Advanced CLI Usage (Working with Multiple Chains):**
 
    # Create and use a NEW chain for your personal files with a custom currency
-   $ python3 blockchain.py --chain ivxx_chain.dat --coin-name "ivxx's" notarize --owner "ivxx" --file "my_notes.txt"
+   $ ./blockchain.py --chain ivxx_chain.dat --coin-name "ivxx's" notarize --owner "ivxx" --file "my_notes.txt"
 
    # Mine the first block on your new chain
-   $ python3 blockchain.py --chain ivxx_chain.dat mine --miner "ivxx"
-
-   # Check your balance on your new chain
-   $ python3 blockchain.py --chain ivxx_chain.dat balance --address "ivxx"
+   $ ./blockchain.py --chain ivxx_chain.dat mine --miner "ivxx"
 
    # Verify the file on your new chain
-   $ python3 blockchain.py --chain ivxx_chain.dat verify "my_notes.txt"
-
-   # Print the contents of your new chain
-   $ python3 blockchain.py --chain ivxx_chain.dat print
+   $ ./blockchain.py --chain ivxx_chain.dat verify "my_notes.txt"
 '''
     )
     
