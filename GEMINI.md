@@ -1,5 +1,9 @@
 # MultiCoin: A Multi-Mode Educational Blockchain Tool
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![GitHub release](https://img.shields.io/github/release/charles-forsyth/python-blockchain-toolkit.svg)](https://GitHub.com/charles-forsyth/python-blockchain-toolkit/releases/)
+
 ## Project Overview
 
 This project is an interactive, command-line tool written in Python that demonstrates the core concepts of blockchain technology. It has evolved from a simple script into a flexible, multi-purpose application that can be used as both a learning tool and a practical utility for file notarization.
