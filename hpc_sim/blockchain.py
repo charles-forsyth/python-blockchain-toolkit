@@ -105,18 +105,33 @@ class Blockchain:
     def add_transaction(self, transaction):
         self.pending_transactions.append(transaction)
 
-    def mine_pending_transactions(self, miner_address):
+    def mine_pending_transactions(self, miner_address, custom_reward=None):
+        if not self.pending_transactions and (custom_reward is None or custom_reward == 0):
+             # Allow mining empty blocks if we are Minting (reward > 0), otherwise skip
+             # But wait, if we have pending transactions, we MUST mine them even if reward is 0.
+             pass
+
         if not self.pending_transactions:
-            print("No pending transactions to mine.")
-            return False
+            # If no transactions, only proceed if we are force-minting coins (reward > 0)
+            if custom_reward is None or custom_reward == 0:
+                print("No pending transactions to mine.")
+                return False
 
         print(f"\n⛏️  Starting the miner...")
-        reward_transaction = {
-            'type': 'reward',
-            'recipient': miner_address,
-            'amount': self.mining_reward
-        }
-        transactions_for_new_block = self.pending_transactions + [reward_transaction]
+        
+        # Determine the reward amount
+        reward_amount = custom_reward if custom_reward is not None else self.mining_reward
+
+        transactions_for_new_block = self.pending_transactions[:]
+        
+        # Only add a reward transaction if the amount is greater than 0
+        if reward_amount > 0:
+            reward_transaction = {
+                'type': 'reward',
+                'recipient': miner_address,
+                'amount': reward_amount
+            }
+            transactions_for_new_block.append(reward_transaction)
 
         new_block = Block(
             index=self.get_latest_block().index + 1,
@@ -331,15 +346,18 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
     parser_mine = subparsers.add_parser('mine', help='(CLI Tool) Mine a new block with all pending transactions.')
     parser_mine.add_argument('--miner', type=str, dest='address', default=os.environ.get('USER', 'local_miner'), 
                              help='The address to receive the mining reward (defaults to your system username).')
+    parser_mine.add_argument('--reward', type=int, default=None, help='Override the default mining reward (use 0 to disable inflation).')
     
     parser_verify = subparsers.add_parser('verify', help='(CLI Tool) Verify a file by checking its hash against the blockchain.')
     parser_verify.add_argument('filepath', type=str, help='The path to the file to verify.')
+
+    parser_stats = subparsers.add_parser('stats', help='(CLI Tool) Print blockchain statistics in JSON format.')
     
     parser_print = subparsers.add_parser('print', help='(CLI Tool) Print the entire blockchain.')
     
     parser_balance = subparsers.add_parser('balance', help='(CLI Tool) Calculate and show the balance of an address.')
     parser_balance.add_argument('--address', type=str, required=True, help='The address to check the balance for.')
-    
+
     parser_transfer = subparsers.add_parser('transfer', help='(CLI Tool) Transfer coins from one address to another.')
     parser_transfer.add_argument('--from', type=str, required=True, dest='sender', help='The address sending the coins.')
     parser_transfer.add_argument('--to', type=str, required=True, dest='recipient', help='The address receiving the coins.')
@@ -372,7 +390,7 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
             })
             print(f"✅ Notarization for '{args.filepath}' added to the mempool.")
     elif args.command == 'mine':
-        gemini_coin.mine_pending_transactions(args.address)
+        gemini_coin.mine_pending_transactions(args.address, custom_reward=args.reward)
     elif args.command == 'verify':
         file_hash = hash_file(args.filepath)
         if file_hash:
@@ -381,6 +399,9 @@ This tool demonstrates blockchain concepts through three distinct modes of opera
                 print(f"\n--- Verification Successful!---\n✅ File hash found on the blockchain in Block #{block.index}.")
             else:
                 print(f"\n--- Verification Failed---\n❌ File hash not found in the blockchain.")
+    elif args.command == 'stats':
+        tx_count = sum(len(b.transactions) if isinstance(b.transactions, list) else 1 for b in gemini_coin.chain)
+        print(f'{{"height": {len(gemini_coin.chain)}, "tx_count": {tx_count}, "last_hash": "{gemini_coin.chain[-1].hash}"}}')
     elif args.command == 'print':
         gemini_coin.print_chain()
     elif args.command == 'balance':

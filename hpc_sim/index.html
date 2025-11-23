@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPC Blockchain Explorer</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .terminal-text { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body x-data="dashboard()" x-init="initDashboard()">
+
+    <!-- Header -->
+    <nav class="border-b border-slate-700 bg-slate-900/50 backdrop-blur fixed w-full z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-cubes-stacked text-blue-500 text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight text-white">HPC<span class="text-blue-500">Chain</span> Explorer</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                        <i class="fa-solid fa-circle-check mr-1"></i> System Online
+                    </span>
+                    <span class="text-slate-400 text-sm" x-text="'Height: ' + stats.blockchain.height"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        
+        <!-- Top Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Stat Card 1 -->
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-400 text-sm font-medium">Total Credits Spent</h3>
+                    <div class="p-2 bg-blue-500/10 rounded-lg"><i class="fa-solid fa-coins text-blue-500"></i></div>
+                </div>
+                <div class="text-3xl font-bold text-white" x-text="stats.economy.credits_spent.toLocaleString()">0</div>
+                <div class="text-xs text-slate-500 mt-2">HPCCredit Volume</div>
+            </div>
+            
+            <!-- Stat Card 2 -->
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-400 text-sm font-medium">Jobs Completed</h3>
+                    <div class="p-2 bg-purple-500/10 rounded-lg"><i class="fa-solid fa-microchip text-purple-500"></i></div>
+                </div>
+                <div class="text-3xl font-bold text-white" x-text="stats.economy.jobs_completed">0</div>
+                <div class="text-xs text-slate-500 mt-2">Successful Executions</div>
+            </div>
+
+            <!-- Stat Card 3 -->
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-400 text-sm font-medium">Active Users</h3>
+                    <div class="p-2 bg-pink-500/10 rounded-lg"><i class="fa-solid fa-users text-pink-500"></i></div>
+                </div>
+                <div class="text-3xl font-bold text-white" x-text="stats.economy.active_users">0</div>
+                <div class="text-xs text-slate-500 mt-2">Researchers Online</div>
+            </div>
+
+            <!-- Stat Card 4 -->
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-400 text-sm font-medium">Tx Throughput</h3>
+                    <div class="p-2 bg-orange-500/10 rounded-lg"><i class="fa-solid fa-bolt text-orange-500"></i></div>
+                </div>
+                <div class="text-3xl font-bold text-white" x-text="stats.blockchain.tx_count">0</div>
+                <div class="text-xs text-slate-500 mt-2">Total Transactions</div>
+            </div>
+        </div>
+
+        <!-- Middle Section: Charts & Terminal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chart Section (2/3 width) -->
+            <div class="lg:col-span-2 glass-panel p-6">
+                <h3 class="text-lg font-semibold text-white mb-6">Network Activity</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Blocks / User List (1/3 width) -->
+            <div class="glass-panel p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Active Researchers</h3>
+                <div class="overflow-y-auto h-64 pr-2">
+                    <ul class="space-y-2">
+                        <template x-for="user in stats.economy.user_list" :key="user">
+                            <li class="flex items-center p-2 rounded hover:bg-slate-800/50 transition">
+                                <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold mr-3">
+                                    <span x-text="user.substring(0,2).toUpperCase()"></span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-white" x-text="user"></p>
+                                    <p class="text-xs text-slate-400">Online</p>
+                                </div>
+                            </li>
+                        </template>
+                        <li x-show="stats.economy.user_list.length === 0" class="text-slate-500 text-sm text-center py-4">Waiting for activity...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Live Terminal -->
+        <div class="mt-8 glass-panel overflow-hidden flex flex-col h-96">
+            <div class="px-6 py-3 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-slate-400 text-sm"></i>
+                    <span class="text-sm font-medium text-slate-300">Live Simulation Log</span>
+                </div>
+                <div class="flex gap-1.5">
+                    <div class="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                </div>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 bg-slate-950/50" id="terminal-window">
+                <template x-for="log in stats.logs">
+                    <div class="terminal-text mb-1">
+                        <span class="text-slate-500 select-none mr-2">$</span>
+                        <span :class="{
+                            'text-green-400': log.includes('SUCCESS') || log.includes('✅'),
+                            'text-red-400': log.includes('❌') || log.includes('failed'),
+                            'text-yellow-400': log.includes('mining') || log.includes('⛏️'),
+                            'text-blue-400': log.includes('Payment') || log.includes('💰'),
+                            'text-slate-300': true
+                        }" x-text="log"></span>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('dashboard', () => ({
+                stats: {
+                    blockchain: { height: 0, tx_count: 0, last_hash: '' },
+                    economy: { jobs_completed: 0, credits_spent: 0, active_users: 0, user_list: [] },
+                    logs: []
+                },
+                chart: null,
+                
+                initDashboard() {
+                    this.initChart();
+                    setInterval(() => this.fetchData(), 2000);
+                },
+
+                async fetchData() {
+                    try {
+                        const res = await fetch('/api/data');
+                        const data = await res.json();
+                        this.stats = data;
+                        
+                        // Auto-scroll terminal
+                        const terminal = document.getElementById('terminal-window');
+                        terminal.scrollTop = terminal.scrollHeight;
+
+                        // Update Chart
+                        this.updateChart(data.economy.credits_spent, data.economy.jobs_completed);
+                        
+                    } catch (e) {
+                        console.error("Fetch error", e);
+                    }
+                },
+
+                initChart() {
+                    const ctx = document.getElementById('activityChart').getContext('2d');
+                    this.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Credits Spent',
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                data: [],
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Jobs Run',
+                                borderColor: '#a855f7',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                data: [],
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: { legend: { labels: { color: '#94a3b8' } } },
+                            scales: {
+                                x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+                                y: { 
+                                    type: 'linear', display: true, position: 'left',
+                                    ticks: { color: '#64748b' }, grid: { color: '#1e293b' } 
+                                },
+                                y1: {
+                                    type: 'linear', display: true, position: 'right',
+                                    grid: { drawOnChartArea: false },
+                                    ticks: { color: '#64748b' }
+                                }
+                            }
+                        }
+                    });
+                },
+
+                updateChart(spent, jobs) {
+                    const now = new Date().toLocaleTimeString();
+                    
+                    if (this.chart.data.labels.length > 20) {
+                        this.chart.data.labels.shift();
+                        this.chart.data.datasets[0].data.shift();
+                        this.chart.data.datasets[1].data.shift();
+                    }
+
+                    this.chart.data.labels.push(now);
+                    this.chart.data.datasets[0].data.push(spent);
+                    this.chart.data.datasets[1].data.push(jobs);
+                    this.chart.update();
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
